@@ -44,3 +44,21 @@ async function run(action){
 }
 
 async function openApp(){ show(true); await run(() => api('GET', '/api/sales')); }
+
+$('loginForm').onsubmit = async e => {
+  e.preventDefault();
+  try{ await api('POST', '/api/auth/login', { password: $('password').value }); $('password').value = ''; $('loginError').textContent = ''; await openApp(); }
+  catch(err){ $('loginError').textContent = err.message; }
+};
+$('logout').onclick = async () => { await api('POST', '/api/auth/logout', {}); show(false); };
+$('saleForm').onsubmit = e => {
+  e.preventDefault();
+  run(() => api('POST', '/api/sales', { date: $('date').value, product: $('product').value, qty: $('qty').value, rate: $('rate').value }));
+  $('product').value = ''; $('qty').value = '';
+};
+
+(async function init(){
+  $('date').value = new Date().toISOString().slice(0, 10);
+  const s = await api('GET', '/api/auth/status');
+  if(s.signedIn) await openApp(); else show(false);
+})();
